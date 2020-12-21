@@ -1,5 +1,5 @@
-(defproject ctg/clojutrie "0.0.1"
-  :description "A simple search trie build on native clojure"
+(defproject ctg/clojutrie "0.0.2"
+  :description "A simple search trie built using native clojure"
   :url "https://github.com/cguckes/clojutrie"
   :min-lein-version "2.9.0"
   :license {:name "The MIT License"
