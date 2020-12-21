@@ -1,0 +1,12 @@
+language: clojure
+jdk:
+  - oraclejdk8
+  - oraclejdk11
+os:
+  - linux
+#  - windows TODO currently not working on travis, check again later
+
+matrix:
+  include:
+    - dist: bionic
+    - dist: focal
