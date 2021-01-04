@@ -1,78 +1,122 @@
 (ns clojutrie.core-test
   (:require [clojure.test :refer :all]
-            [clojutrie.core :as ct]))
+            [clojutrie.core :as ct]
+            [clojutrie.spec :as cs]))
+
+(deftest empty-trie-is-valid
+  (is (cs/valid-trie? (ct/empty-trie))))
+
+(deftest set-works
+  (is (= {:value #{}
+          \a     {:value #{"a"}}} (ct/set-val (ct/empty-trie) "a" #{"a"})))
+  (is (= {:value #{}
+          \a     {:value #{"a"}}
+          \b     {:value #{"b"}}}
+         (-> (ct/empty-trie)
+             (ct/set-val "a" #{"a"})
+             (ct/set-val "b" #{"b"}))))
+  (is (= {:value #{}
+          \a     {:value #{}
+                  \b     {:value #{"ab"}}}}
+         (ct/set-val (ct/empty-trie) "ab" #{"ab"}))))
 
 (deftest adds-value-for-one-char
-  (let [trie (ct/insert nil "a" "value")]
-    (is (= {\a {:value #{"value"}}} trie))))
+  (let [trie (ct/insert (ct/empty-trie) "a" "value")]
+    (is (= {:value #{}
+            \a     {:value #{"value"}}} trie))))
 
 (deftest adds-second-value-for-one-char
-  (let [trie (-> {}
+  (let [trie (-> (ct/empty-trie)
                  (ct/insert "a" "value1")
                  (ct/insert "a" "value2"))]
-    (is (= {\a {:value #{"value2" "value1"}}} trie))))
+    (is (= {:value #{}
+            \a     {:value #{"value2" "value1"}}} trie))))
 
 (deftest works-on-multiple-levels
-  (let [trie (-> {}
+  (let [trie (-> (ct/empty-trie)
                  (ct/insert "a" "value1")
                  (ct/insert "ab" "value2"))]
-    (is (= {\a {\b     {:value #{"value2"}}
-                :value #{"value1"}}}
+    (is (= {:value #{}
+            \a     {:value #{"value1"}
+                    \b     {:value #{"value2"}}}}
            trie))))
 
 (deftest finds-entry-in-simple-trie
   (is (= #{"value"}
-         (ct/search {\a {:value #{"value"}}} "a")))
+         (ct/search {:value #{}
+                     \a     {:value #{"value"}}} "a")))
   (is (= #{"value1" "value2"}
-         (ct/search {\a {:value #{"value1" "value2"}}} "a"))))
+         (ct/search {:value #{}
+                     \a     {:value #{"value1" "value2"}}} "a"))))
 
 (deftest adds-a-value-for-a-key
-  (let [trie (ct/insert nil "test" "value")]
-    (is (= {\t {\e {\s {\t {:value #{"value"}}}}}} trie))))
+  (let [trie (ct/insert (ct/empty-trie) "test" "value")]
+    (is (= {:value #{}
+            \t     {:value #{}
+                    \e     {:value #{}
+                            \s     {:value #{}
+                                    \t     {:value #{"value"}}}}}} trie))))
 
 (deftest search-works-on-any-level
-  (let [trie {\a {\b     {:value #{"value2"}}
-                  :value #{"value1"}}}]
+  (let [trie {:value #{}
+              \a     {:value #{"value1"}
+                      \b     {:value #{"value2"}}}}]
     (is (= #{"value1"} (ct/search trie "a")))
     (is (= #{"value2"} (ct/search trie "ab")))))
 
 (deftest merge-merges-two-tries
-  (let [trie1 {\a {\b     {\c     {:value #{"abc"}}
-                           :value #{"ab"}}
-                   :value #{"a1"}}}
-        trie2 {\a {\a     {:value #{"aa"}}
-                   :value #{"a2"}}}]
-    (is (= {} (ct/merge-tries {} {})))
-    (is (= trie1 (ct/merge-tries {} trie1)))
-    (is (= trie1 (ct/merge-tries trie1 {})))
-    (is (= {\a {\a     {:value #{"aa"}}
-                \b     {\c     {:value #{"abc"}}
-                        :value #{"ab"}}
-                :value #{"a1" "a2"}}}
+  (let [trie1 {:value #{}
+               \a     {:value #{"a1"}
+                       \b     {:value #{"ab"}
+                               \c     {:value #{"abc"}}}}}
+        trie2 {:value #{}
+               \a     {:value #{"a2"}
+                       \a     {:value #{"aa"}}}}]
+    (is (= (ct/empty-trie) (ct/merge-tries (ct/empty-trie) (ct/empty-trie))))
+    (is (= trie1 (ct/merge-tries (ct/empty-trie) trie1)))
+    (is (= trie1 (ct/merge-tries trie1 (ct/empty-trie))))
+    (is (= {:value #{}
+            \a     {:value #{"a1" "a2"}
+                    \a     {:value #{"aa"}}
+                    \b     {:value #{"ab"}
+                            \c     {:value #{"abc"}}}}}
            (ct/merge-tries trie1 trie2)))))
 
 (deftest remove-key-deletes-every-value-in-that-branch
-  (let [trie {\a {\b     {:value "ab"}
-                  \c     {\d {:value "acd"}}
-                  :value "a"}}]
-    (is (= {} (ct/remove-key trie "a")))
-    (is (= {\a {\b     {:value "ab"}
-                :value "a"}}
+  (let [trie {:value #{}
+              \a     {:value #{"a"}
+                      \b     {:value #{"ab"}}
+                      \c     {:value #{}
+                              \d     {:value #{"acd"}}}}}]
+    (is (= {:value #{}} (ct/remove-key trie "a")))
+    (is (= {:value #{}
+            \a     {:value #{"a"}
+                    \b     {:value #{"ab"}}}}
            (ct/remove-key trie "ac")))))
 
 (deftest remove-key-value-only-removes-specific-values
-  (let [trie {\a {\b     {:value "ab"
-                          \c     {:value "abc"}}
-                  :value "a"}}]
-    (is (= {\a {\b {:value "ab"
-                    \c     {:value "abc"}}}}
-           (ct/remove-key-value trie "a")))
-    (is (= {\a {\b     {\c {:value "abc"}}
-                :value "a"}}
-           (ct/remove-key-value trie "ab")))))
+  (let [trie {:value #{}
+              \a     {:value #{"a"}
+                      \b     {:value #{"ab"}
+                              \c     {:value #{"abc"}}}}}]
+    (is (= {:value #{}
+            \a     {:value #{}
+                    \b     {:value #{"ab"}
+                            \c     {:value #{"abc"}}}}}
+           (ct/remove-key-val trie "a")))
+    (is (= {:value #{}
+            \a     {:value #{"a"}
+                    \b     {:value #{}
+                            \c     {:value #{"abc"}}}}}
+           (ct/remove-key-val trie "ab")))))
+
+
+(deftest keywords-returns-all-inserted-words
+  (is (empty? (ct/keywords (ct/empty-trie))))
+  (is (= '("hi") (ct/keywords (-> (ct/empty-trie) (ct/insert "hi" 1))))))
 
 (deftest prefix-search-returns-correct-results
-  (let [trie (-> {}
+  (let [trie (-> (ct/empty-trie)
                  (ct/insert "hi there" 1)
                  (ct/insert "hi yourself" 2)
                  (ct/insert "see you" 3))]
@@ -86,8 +130,15 @@
            (ct/prefix-search trie "s")))
     ))
 
-; TODO: (deftest remove-val-removes-specific-value-from-all-keys
-;  (is (= {\a {:value #{}}} (ct/remove-val {\a {:value ["val"]}} "val")))
-;  (is (= {\a {\b     {}
-;              :value []}} (ct/remove-val {\a {\b     {}
-;                                              :value ["val"]}} "val"))))
+(deftest remove-val-removes-specific-value-from-all-keys
+  (is (= {:value #{}
+          \a     {:value #{}}}
+         (ct/remove-val
+           (-> (ct/empty-trie) (ct/insert "a" "val"))
+           "val")))
+  (is (= {:value #{}
+          \a     {:value #{}
+                  \b     {:value #{}}}}
+         (ct/remove-val
+           (-> (ct/empty-trie) (ct/set-val "ab" #{}) (ct/insert "a" "val"))
+           "val"))))

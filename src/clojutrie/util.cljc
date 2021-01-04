@@ -1,7 +1,13 @@
-(ns clojutrie.util)
+(ns clojutrie.util
+  (:require [clojure.zip :as zip]
+            [clojure.pprint :as pp]))
+
+(defn tap [val]
+  (pp/pprint val)
+  val)
 
 (defn dissoc-in
-  [m [k & ks :as keys]]
+  [m [k & ks]]
   (if ks
     (if-let [nextmap (get m k)]
       (let [newmap (dissoc-in nextmap ks)]
@@ -18,3 +24,35 @@
         (apply merge-with merge-method maps)
         (apply f maps)))
     maps))
+
+(defn leaf? [node]
+  (let [result (-> (zip/node node) (second) (set?))]
+    result))
+
+(defn children [node]
+  (if (map? node)
+    (->> (dissoc node :value) (map seq))
+    (if (= :value (first node))
+      '()
+      (second node))))
+
+(defn trie-zipper [trie]
+  (zip/zipper
+    (fn [_] true)
+    children
+    identity
+    trie))
+
+(defn map-first [map]
+  (let [head (first (keys map))]
+    {head (get map head)}))
+
+(defn map-rest [map]
+  (dissoc map (first (keys map))))
+
+(defn map-cons [map1 map2]
+  (into {} (concat map1 map2)))
+
+(defn map-map [f m & args]
+  (into {} (map (fn [k] {k (apply f (get m k) args)})
+                (keys m))))
