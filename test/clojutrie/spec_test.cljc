@@ -20,8 +20,16 @@
   (is (not (s/valid? ::cs/trie {:value ["a" "a"]})))
   (is (not (s/valid? ::cs/trie {\a {:value #{}}}))))
 
-; TODO
-(deftest functions-are-speced-correctly
-  (let [val (stest/check 'ct/empty-trie)]
-    (println val)
-    (is val)))
+(defn- passed? [func]
+  (:pass? (:stest/ret (first (stest/check func)))))
+(deftest functions-adhere-to-spec
+  (is (passed? 'clojutrie.core/empty-trie) "empty-trie failed spec test")
+  (is (passed? 'clojutrie.core/search) "search failed spec test")
+  (is (passed? 'clojutrie.core/set-val) "set-val failed spec test")
+  (is (passed? 'clojutrie.core/insert) "insert failed spec test")
+  (is (passed? 'clojutrie.core/merge-tries) "merge-tries failed spec test")
+  (is (passed? 'clojutrie.core/remove-key) "remove-key failed spec test")
+  (is (passed? 'clojutrie.core/remove-key-val) "remove-key-val failed spec test")
+  (is (passed? 'clojutrie.core/remove-val) "remove-val failed spec test")
+  (is (passed? 'clojutrie.core/keywords) "keywords failed spec test")
+  (is (passed? 'clojutrie.core/prefix-search) "prefix-search failed spec test"))
