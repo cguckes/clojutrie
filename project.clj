@@ -9,7 +9,8 @@
   :test-paths ["test"]
   :aot [clojutrie.core]
   :resource-paths ["resources"]
-  :deploy-repositories [["clojars" {:url "https://clojars.org/repo"}]]
+  :deploy-repositories [["clojars" {:url "https://clojars.org/repo"
+                                    :signing {:gpg-key "234E9995103A0AA80B9AB8B3557812536AA7BDB1"}}]]
   :repl-options {:init-ns clojutrie.core}
   :profiles {:dev  {:dependencies [[org.clojure/test.check "1.1.0"]]}
              :test {:plugins [[lein-cloverage "1.1.2"]
