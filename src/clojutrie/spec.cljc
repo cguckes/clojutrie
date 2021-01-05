@@ -28,4 +28,3 @@
     (when-not valid
       (s/explain ::key key))
     valid))
-

@@ -3,7 +3,8 @@
             [clojure.spec.alpha :as s]
             [clojure.spec.test.alpha :as stest]
             [clojutrie.spec :as cs]
-            [clojure.spec.test.alpha :as stest]))
+            [clojure.spec.test.alpha :as stest]
+            [clojutrie.core]))
 
 (deftest spec-accepts-valid-tries
   (is (s/valid? ::cs/trie {:value #{}}))
@@ -24,16 +25,17 @@
       (first)
       (:clojure.spec.test.check/ret)
       (:pass?)))
-
+(defn- failed [func]
+  (str func " failed spec test"))
 (deftest functions-adhere-to-spec
-  (is (passed? 'clojutrie.core/empty-trie) "empty-trie failed spec test")
-  (is (passed? 'clojutrie.core/search) "search failed spec test")
-  (is (passed? 'clojutrie.core/set-val) "set-val failed spec test")
-  (is (passed? 'clojutrie.core/insert) "insert failed spec test")
-  (is (passed? 'clojutrie.core/merge-tries) "merge-tries failed spec test")
-  (is (passed? 'clojutrie.core/remove-key) "remove-key failed spec test")
-  (is (passed? 'clojutrie.core/remove-key-val) "remove-key-val failed spec test")
-  (is (passed? 'clojutrie.core/remove-key-vals) "remove-key-val failed spec test")
-  (is (passed? 'clojutrie.core/remove-val) "remove-val failed spec test")
-  (is (passed? 'clojutrie.core/keywords) "keywords failed spec test")
-  (is (passed? 'clojutrie.core/prefix-search) "prefix-search failed spec test"))
+  (is (passed? 'clojutrie.core/empty-trie) (failed "empty-trie"))
+  (is (passed? 'clojutrie.core/search) (failed "search"))
+  (is (passed? 'clojutrie.core/set-val) (failed "set-val"))
+  (is (passed? 'clojutrie.core/insert) (failed "insert"))
+  (is (passed? 'clojutrie.core/merge-tries) (failed "merge-tries"))
+  (is (passed? 'clojutrie.core/remove-key) (failed "remove-key"))
+  (is (passed? 'clojutrie.core/remove-key-val) (failed "remove-key-val"))
+  (is (passed? 'clojutrie.core/remove-key-vals) (failed "remove-key-val"))
+  (is (passed? 'clojutrie.core/remove-val) (failed "remove-val"))
+  (is (passed? 'clojutrie.core/keywords) (failed "keywords"))
+  (is (passed? 'clojutrie.core/prefix-search) (failed "prefix-search")))

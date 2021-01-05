@@ -11,4 +11,8 @@
   :resource-paths ["resources"]
   :deploy-repositories [["clojars" {:sign-releases false :url "https://clojars.org/repo"}]]
   :repl-options {:init-ns clojutrie.core}
-  :profiles {:dev {:dependencies [[org.clojure/test.check "1.1.0"]]}}  )
+  :profiles {:dev  {:dependencies [[org.clojure/test.check "1.1.0"]]}
+             :test {:plugins [[lein-cloverage "1.1.2"]
+                              [lein-bikeshed "0.5.2"]
+                              [lein-kibit "0.1.8"]
+                              [jonase/eastwood "0.3.6"]]}})

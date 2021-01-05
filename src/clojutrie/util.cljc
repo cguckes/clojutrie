@@ -26,7 +26,7 @@
 
 (defn- children [node]
   (if (map? node)
-    (->> (dissoc node :value) (map seq))
+    (map seq (dissoc node :value))
     (if (= :value (first node))
       '()
       (second node))))

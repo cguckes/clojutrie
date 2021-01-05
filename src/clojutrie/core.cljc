@@ -51,7 +51,7 @@
                      :value-set ::cs/value)
         :ret ::cs/trie
         :fn (fn [{:keys [args ret]}]
-              (let [searchval (-> ret (search (:key args)))]
+              (let [searchval (search ret (:key args))]
                 (= (:value-set args) searchval))))
 
 (defn insert
