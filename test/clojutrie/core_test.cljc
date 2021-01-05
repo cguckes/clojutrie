@@ -88,13 +88,31 @@
                       \b     {:value #{"ab"}}
                       \c     {:value #{}
                               \d     {:value #{"acd"}}}}}]
+    (is (= {:value #{}} (ct/remove-key {:value #{"root"}} "")))
     (is (= {:value #{}} (ct/remove-key trie "a")))
     (is (= {:value #{}
             \a     {:value #{"a"}
                     \b     {:value #{"ab"}}}}
            (ct/remove-key trie "ac")))))
 
-(deftest remove-key-value-only-removes-specific-values
+(deftest remove-key-val-only-removes-specific-values
+  (let [trie {:value #{}
+              \a     {:value #{"a" "b"}
+                      \b     {:value #{"ab" "abab"}
+                              \c     {:value #{"abc"}}}}}]
+    (is (= {:value #{}
+            \a     {:value #{"b"}
+                    \b     {:value #{"ab" "abab"}
+                            \c     {:value #{"abc"}}}}}
+           (ct/remove-key-val trie "a" "a")))
+    (is (= {:value #{}
+            \a     {:value #{"a" "b"}
+                    \b     {:value #{"abab"}
+                            \c     {:value #{"abc"}}}}}
+           (ct/remove-key-val trie "ab" "ab")))
+    (is (= trie (ct/remove-key-val trie "not-there" "blub")))))
+
+(deftest remove-key-vals-removes-all-vals-for-a-key
   (let [trie {:value #{}
               \a     {:value #{"a"}
                       \b     {:value #{"ab"}
@@ -103,13 +121,26 @@
             \a     {:value #{}
                     \b     {:value #{"ab"}
                             \c     {:value #{"abc"}}}}}
-           (ct/remove-key-val trie "a")))
+           (ct/remove-key-vals trie "a")))
     (is (= {:value #{}
             \a     {:value #{"a"}
                     \b     {:value #{}
                             \c     {:value #{"abc"}}}}}
-           (ct/remove-key-val trie "ab")))))
+           (ct/remove-key-vals trie "ab")))
+    (is (= trie (ct/remove-key-vals trie "not-there")))))
 
+(deftest remove-val-removes-specific-value-from-all-keys
+  (is (= {:value #{}
+          \a     {:value #{}}}
+         (ct/remove-val
+           (-> (ct/empty-trie) (ct/insert "a" "val"))
+           "val")))
+  (is (= {:value #{}
+          \a     {:value #{}
+                  \b     {:value #{}}}}
+         (ct/remove-val
+           (-> (ct/empty-trie) (ct/set-val "ab" #{}) (ct/insert "a" "val"))
+           "val"))))
 
 (deftest keywords-returns-all-inserted-words
   (is (empty? (ct/keywords (ct/empty-trie))))
@@ -129,16 +160,3 @@
     (is (= #{"see you"}
            (ct/prefix-search trie "s")))
     ))
-
-(deftest remove-val-removes-specific-value-from-all-keys
-  (is (= {:value #{}
-          \a     {:value #{}}}
-         (ct/remove-val
-           (-> (ct/empty-trie) (ct/insert "a" "val"))
-           "val")))
-  (is (= {:value #{}
-          \a     {:value #{}
-                  \b     {:value #{}}}}
-         (ct/remove-val
-           (-> (ct/empty-trie) (ct/set-val "ab" #{}) (ct/insert "a" "val"))
-           "val"))))

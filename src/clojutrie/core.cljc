@@ -3,7 +3,9 @@
             [clojure.zip :as zip]
             [clojure.spec.alpha :as s]
             [clojutrie.util :as utl]
-            [clojutrie.spec :as cs]))
+            [clojutrie.spec :as cs]
+            [clojure.pprint :as pp]
+            [clojure.string :as str]))
 
 (defn empty-trie
   "Creates a valid empty trie."
@@ -42,11 +44,15 @@
                          (empty-trie))]
       (-> trie
           (assoc :value (or (:value trie) #{}))
-          (assoc char (set-val child-trie (rest key) value-set))))))
+          (assoc char (set-val child-trie (subs key 1) value-set))))))
 (s/fdef set-val
-        :args (s/cat :trie ::cs/trie :key ::cs/key :value-set ::s/value)
+        :args (s/cat :trie ::cs/trie
+                     :key ::cs/key
+                     :value-set ::cs/value)
         :ret ::cs/trie
-        :fn #(= (-> % :args :value) (-> :ret (search (-> % :args :key)))))
+        :fn (fn [{:keys [args ret]}]
+              (let [searchval (-> ret (search (:key args)))]
+                (= (:value-set args) searchval))))
 
 (defn insert
   "Adds a value to the given key."
@@ -58,9 +64,9 @@
         new-val (set/union old-val #{value})]
     (set-val trie key new-val)))
 (s/fdef insert
-        :args (s/cat :trie ::cs/trie :key ::cs/key :value-set some?)
+        :args (s/cat :trie ::cs/trie :key ::cs/key :value some?)
         :ret ::cs/trie
-        :fn #(contains? (-> :ret (search (-> % :args :key)))
+        :fn #(contains? (-> % :ret (search (-> % :args :key)))
                         (-> % :args :value)))
 
 (defn merge-tries
@@ -82,20 +88,43 @@
   {:pre  [(cs/valid-trie? trie)
           (cs/valid-key? key)]
    :post [(cs/valid-trie? %)]}
-  (utl/dissoc-in trie (seq key)))
+  (if (empty? key)
+    (set-val trie "" #{})
+    (utl/dissoc-in trie (seq key))))
 (s/fdef remove-key
-        :args (s/cat :trie ::cs/trie :key ::cs/key)
+        :args (s/cat :trie ::cs/trie
+                     :key ::cs/key)
         :ret ::cs/trie
-        :fn #(empty? (search (:ret %) (-> % :args :key))))
+        :fn (fn [{:keys [args ret]}]
+              (empty? (search ret (:key args)))))
 
 (defn remove-key-val
-  "Removes all values for a specific key."
+  "Removes a specific value from a key."
+  [trie key val]
+  {:pre  [(cs/valid-trie? trie)
+          (cs/valid-key? key)]
+   :post [(cs/valid-trie? %)]}
+  (if (seq (search trie key))
+    (assoc-in trie
+              (concat (seq key) [:value])
+              (disj (search trie key) val))
+    trie))
+(s/fdef remove-key-val
+        :args (s/cat :trie ::cs/trie
+                     :key ::cs/key
+                     :val some?)
+        :ret ::cs/trie)
+
+(defn remove-key-vals
+  "Removes all values for a key."
   [trie key]
   {:pre  [(cs/valid-trie? trie)
           (cs/valid-key? key)]
    :post [(cs/valid-trie? %)]}
-  (assoc-in trie (concat (seq key) [:value]) #{}))
-(s/fdef remove-key
+  (if (seq (search trie key))
+    (assoc-in trie (concat (seq key) [:value]) #{})
+    trie))
+(s/fdef remove-key-vals
         :args (s/cat :trie ::cs/trie :key ::cs/key)
         :ret ::cs/trie
         :fn #(empty? (search (:ret %) (-> % :args :key))))
@@ -103,12 +132,11 @@
 (defn remove-val
   "Removes a value from all leaves on the trie."
   [trie val]
-  {:pre  [(cs/valid-trie? trie)
-          (cs/valid-value? val)]
+  {:pre  [(cs/valid-trie? trie)]
    :post [(cs/valid-trie? %)]}
   (utl/map-cons {:value (disj (:value (utl/map-first trie)) val)}
                 (utl/map-map remove-val (utl/map-rest trie) val)))
-(s/fdef remove-key
+(s/fdef remove-val
         :args (s/cat :trie ::cs/trie :val some?)
         :ret ::cs/trie)
 
@@ -158,4 +186,7 @@
 (s/fdef prefix-search
         :args (s/cat :trie ::cs/trie :prefix string?)
         :ret (s/coll-of ::cs/key)
-        :fn #(coll? (:ret %)))
+        :fn (fn [{:keys [args ret]}]
+              (and (coll? ret)
+                   (every? (fn [word] (str/starts-with? word (:prefix :args)))
+                           ret))))

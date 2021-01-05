@@ -1,10 +1,5 @@
 (ns clojutrie.util
-  (:require [clojure.zip :as zip]
-            [clojure.pprint :as pp]))
-
-(defn tap [val]
-  (pp/pprint val)
-  val)
+  (:require [clojure.zip :as zip]))
 
 (defn dissoc-in
   [m [k & ks]]
@@ -29,13 +24,12 @@
   (let [result (-> (zip/node node) (second) (set?))]
     result))
 
-(defn children [node]
+(defn- children [node]
   (if (map? node)
     (->> (dissoc node :value) (map seq))
     (if (= :value (first node))
       '()
       (second node))))
-
 (defn trie-zipper [trie]
   (zip/zipper
     (fn [_] true)
