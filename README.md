@@ -1,6 +1,7 @@
 # clojutrie
 
 A Clojure library implementing a simple keyword search trie.
+
 [![Clojars Project](https://img.shields.io/clojars/v/ctg/clojutrie.svg)](https://clojars.org/ctg/clojutrie)
 
 ## Disclaimer
