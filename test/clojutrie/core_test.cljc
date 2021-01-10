@@ -150,7 +150,8 @@
   (let [trie (-> (ct/empty-trie)
                  (ct/insert "hi there" 1)
                  (ct/insert "hi yourself" 2)
-                 (ct/insert "see you" 3))]
+                 (ct/insert "see you" 3)
+                 (ct/insert "see" 4))]
     (is (= #{"hi there"
              "hi yourself"}
            (ct/prefix-search trie "h")))
@@ -158,5 +159,6 @@
              "hi yourself"}
            (ct/prefix-search trie "hi ")))
     (is (= #{"see you"}
-           (ct/prefix-search trie "s")))
-    ))
+           (ct/prefix-search trie "see y")))
+    (is (= #{"see" "see you"}
+           (ct/prefix-search trie "see")))))

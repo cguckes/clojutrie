@@ -1,4 +1,4 @@
-(defproject ctg/clojutrie "1.0.0"
+(defproject ctg/clojutrie "1.0.1"
   :description "A simple search trie built using native clojure"
   :url "https://github.com/cguckes/clojutrie"
   :min-lein-version "2.9.0"

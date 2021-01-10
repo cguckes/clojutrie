@@ -188,5 +188,5 @@
         :ret (s/coll-of ::cs/key)
         :fn (fn [{:keys [args ret]}]
               (and (coll? ret)
-                   (every? (fn [word] (str/starts-with? word (:prefix :args)))
+                   (every? (fn [word] (str/starts-with? word (:prefix args)))
                            ret))))

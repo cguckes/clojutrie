@@ -21,8 +21,12 @@
     maps))
 
 (defn leaf? [node]
-  (let [result (-> (zip/node node) (second) (set?))]
-    result))
+  (let [trie-node (zip/node node)
+        ;result (-> trie-node (second) (set?))
+        value-set (cond
+                    (map? trie-node) (:value trie-node)
+                    (= :value (first trie-node)) (second trie-node))]
+    (seq value-set)))
 
 (defn- children [node]
   (if (map? node)
@@ -48,5 +52,6 @@
   (into {} (concat map1 map2)))
 
 (defn map-map [f m & args]
-  (into {} (map (fn [k] {k (apply f (get m k) args)})
-                (keys m))))
+  (into {}
+        (map (fn [k] {k (apply f (get m k) args)})
+             (keys m))))
